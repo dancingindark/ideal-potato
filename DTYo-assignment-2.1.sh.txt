@@ -1,0 +1,38 @@
+#!/bin/sh
+##################################
+#
+# Bash script for DTYo Activity 2.1
+# AWS S3 Create Web site.`
+# M Shaunnessey Apr 2020
+#
+#################################
+echo Script Name: $0
+echo S3 Name   $1
+bucket=$1
+#
+echo Create bucket
+echo Target Bucket $bucket
+echo $bucket
+echo Bucket List
+aws s3 ls --recursive --human-readable --summarize
+aws s3 mb s3://$bucket
+aws s3 ls --recursive --human-readable --summarize
+aws s3 ls $bucket
+echo Bucket List
+# copy website files
+aws s3 cp index.html s3://$bucket  # Home page html
+aws s3 cp error.html s3://$bucket  # error page
+aws s3 cp styles.css s3://$bucket  # css stylesheet
+aws s3 cp weather.js s3://$bucket  # javascript
+#### set up permissions
+aws s3api put-public-access-block  --bucket $bucket --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"
+aws s3 ls s3://$bucket --recursive --human-readable --summarize
+echo Setting bucket policy
+cat ~/policy.json
+aws s3api put-bucket-policy --bucket $bucket --policy file://policy.json
+echo issue website command
+aws s3 website s3://$bucket/ --index-document index.html --error-document error.html
+
+# clean up end exit
+#aws s3 rm s3://$bucket --recursive
+#aws s3 ls --recursive --human-readable --summarize
